@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+
+    nginx:
+        build:
+            context: .
+            dockerfile: ./docker/nginx/Dockerfile
+        volumes:
+            - ./:/scaffold/
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+        ports:
+            - "8080:80"
+        depends_on: 
+            - fpm
+            - mysql
+            - redis
+        links:
+            - fpm
+            - mysql
+            - redis
+
+    fpm:
+        build:
+            context: .
+            dockerfile: ./docker/fpm/Dockerfile
+        volumes:
+            - ./:/scaffold
+        depends_on: 
+            - mysql
+            - redis
+        links:
+            - mysql
+            - redis
+        environment:
+            - "DB_PORT=3306"
+            - "DB_HOST=mysql"
+
+    mysql:
+        image: mysql:5.7
+        environment:
+            - "MYSQL_ROOT_PASSWORD=toor"
+            - "MYSQL_DATABASE=scaffold"
+        ports:
+            - "3306"
+            
+    redis:
+        image: redis:3.0
+        ports:
+            - "6379"
+
